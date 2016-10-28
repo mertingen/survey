@@ -1,0 +1,16 @@
+{
+  "name": "anket",
+  "version": "0.1.0",
+  "description": "Başkanlık sistemi için anket sistemi.",
+  "main": "app.js",
+  "dependencies": {
+    "mongoose": "^4.6.5",
+    "socket.io": "^1.5.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Mert Simsek",
+  "license": "ISC"
+}
