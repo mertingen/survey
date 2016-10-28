@@ -9,8 +9,8 @@ app.use(express.static(path.join(__dirname, '/public')));
 
 mongoose.connect('mongodb://user:user@ds047581.mlab.com:47581/survey');
 var db = mongoose.connection;
-var Total = require('./total.js');
-var Excluded = require('./excluded.js');
+var Total = require('./schemas/total.js');
+var Excluded = require('./schemas/excluded.js');
 
 db.once('open', () => {
 	console.log('Db connected!');
