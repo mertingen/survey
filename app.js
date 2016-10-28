@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 
 app.use(express.static(path.join(__dirname, '/public')));
 
+mongoose.Promise = global.Promise;
 mongoose.connect('mongodb://user:user@ds047581.mlab.com:47581/survey');
 var db = mongoose.connection;
 var Total = require('./schemas/total.js');
@@ -18,91 +19,100 @@ db.once('open', () => {
 
 
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/index.html');
+	res.sendFile(__dirname + '/index.html');
 });
 
 var yesCounter = 0;
 var noCounter = 0;
 var total = 0;
 var clientIp = '';
-var isValidIp = true;
 io.on('connection', (socket) => {
 
-  clientIp = socket.request.connection.remoteAddress;
+	clientIp = socket.request.connection.remoteAddress;
 
-  Total.findById('58125fb6ba8bd09f49a049ce', (err, doc) => {
-    yesCounter = doc.yes;
-    noCounter = doc.no;
-    total = doc.yes + doc.no;
-
-    io.sockets.emit('validYes', {yesCounter:yesCounter, total:total});
-    io.sockets.emit('validNo', {noCounter:noCounter, total:total});
-  });
-
-  socket.on('dataYes', (data) => {
-
-  	checkIp(clientIp, (isValidIp) => {
-	  if (!isValidIp){
-	  	console.log('KULLANAMAZSIN!');
-	  }else if (data) {
-	  	  ++yesCounter;
-	  	  ++total;
-
-	  	  Total.findOneAndUpdate({_id: '58125fb6ba8bd09f49a049ce'}, {$set:{yes:yesCounter}}, {new: true}, (err, doc) => {
-		    if(err){
-		        throw err;
-		    }
-
-		    var ip = new Excluded({ ip: clientIp });
-			  ip.save( (err) => {
-			  	if (err) throw err;
-			});
-
-		    io.sockets.emit('validYes', {yesCounter:yesCounter, total:total});
-
-		  });
-	  }
-    });
-  });
-
-  socket.on('dataNo', (data) => {
-  	checkIp(clientIp, (isValidIp) => {
-	  if (!isValidIp){
-	  	console.log('KULLANAMAZSIN!');
-	  } else if (data) {
-	  	  ++noCounter;
-	  	  ++total;
-
-	  	  Total.findOneAndUpdate({_id: '58125fb6ba8bd09f49a049ce'}, {$set:{no:noCounter}}, {new: true}, function(err, doc){
-		    if(err){
-		        throw err;
-		    }
-		    var ip = new Excluded({ ip: clientIp });
-			ip.save( (err) => {
-			  if (err) throw err;
-			});
-		    io.sockets.emit('validNo', {noCounter:noCounter, total:total});
-		  });
-	   }
+	checkIp(clientIp, (isValidIp) => {
+		if (!isValidIp){
+			socket.emit('isVoter', false);
+		}else {
+			socket.emit('isVoter', true);
+		}
 	});
-  });
 
-  socket.on('disconnect', () => {
-    console.log('Exit.')
-  });
+	Total.findById('58125fb6ba8bd09f49a049ce', (err, doc) => {
+		yesCounter = doc.yes;
+		noCounter = doc.no;
+		total = doc.yes + doc.no;
+
+		io.sockets.emit('validYes', {yesCounter:yesCounter, total:total});
+		io.sockets.emit('validNo', {noCounter:noCounter, total:total});
+	});
+
+	socket.on('dataYes', (data) => {
+
+		checkIp(clientIp, (isValidIp) => {
+			if (!isValidIp){
+				console.log('KULLANAMAZSIN!');
+			}else if (data) {
+				++yesCounter;
+				++total;
+
+				Total.findOneAndUpdate({_id: '58125fb6ba8bd09f49a049ce'}, {$set:{yes:yesCounter}}, {new: true}, (err, doc) => {
+					if(err){
+						throw err;
+					}
+
+					var ip = new Excluded({ ip: clientIp });
+					ip.save( (err) => {
+						if (err) throw err;
+					});
+
+					io.sockets.emit('validYes', {yesCounter:yesCounter, total:total});
+					socket.emit('isVoter', false);
+
+				});
+			}
+		});
+	});
+
+	socket.on('dataNo', (data) => {
+		checkIp(clientIp, (isValidIp) => {
+			if (!isValidIp){
+				console.log('KULLANAMAZSIN!');
+			} else if (data) {
+				++noCounter;
+				++total;
+
+				Total.findOneAndUpdate({_id: '58125fb6ba8bd09f49a049ce'}, {$set:{no:noCounter}}, {new: true}, function(err, doc){
+					if(err){
+						throw err;
+					}
+					var ip = new Excluded({ ip: clientIp });
+					ip.save( (err) => {
+						if (err) throw err;
+					});
+					io.sockets.emit('validNo', {noCounter:noCounter, total:total});
+					socket.emit('isVoter', false);
+				});
+			}
+		});
+	});
+
+	socket.on('disconnect', () => {
+		console.log('Exit.')
+	});
 });
 
 function checkIp(clientIp, callback) {
 	Excluded.findOne({ip: clientIp}, (err,obj) => { 
-	  if (err) throw err;
-	  if (obj){
-	  	callback(false);
-	  } else {
-	  	callback(true);
-	  }
+		if (err) throw err;
+		if (obj){
+			callback(false);
+		} else {
+			callback(true);
+		}
 	});
 }
 
 http.listen(8081, '0.0.0.0', () => {
-  console.log("0.0.0.0:8081 dinleniyor...");
+	console.log("0.0.0.0:8081 dinleniyor...");
 });
