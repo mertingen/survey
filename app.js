@@ -25,6 +25,7 @@ var yesCounter = 0;
 var noCounter = 0;
 var total = 0;
 var clientIp = '';
+var isValidIp = true;
 io.on('connection', (socket) => {
 
   clientIp = socket.request.connection.remoteAddress;
@@ -40,9 +41,8 @@ io.on('connection', (socket) => {
 
   socket.on('dataYes', (data) => {
 
-  	Excluded.findOne({ip: clientIp}, (err,obj) => { 
-	  if (err) throw err;
-	  if (obj){
+  	checkIp(clientIp, (isValidIp) => {
+	  if (!isValidIp){
 	  	console.log('KULLANAMAZSIN!');
 	  }else if (data) {
 	  	  ++yesCounter;
@@ -66,9 +66,8 @@ io.on('connection', (socket) => {
   });
 
   socket.on('dataNo', (data) => {
-  	Excluded.findOne({ip: clientIp}, (err,obj) => { 
-	  if (err) throw err;
-	  if (obj){
+  	checkIp(clientIp, (isValidIp) => {
+	  if (!isValidIp){
 	  	console.log('KULLANAMAZSIN!');
 	  } else if (data) {
 	  	  ++noCounter;
@@ -78,14 +77,11 @@ io.on('connection', (socket) => {
 		    if(err){
 		        throw err;
 		    }
-
 		    var ip = new Excluded({ ip: clientIp });
-			  ip.save( (err) => {
-			  	if (err) throw err;
+			ip.save( (err) => {
+			  if (err) throw err;
 			});
-
 		    io.sockets.emit('validNo', {noCounter:noCounter, total:total});
-
 		  });
 	   }
 	});
@@ -95,6 +91,17 @@ io.on('connection', (socket) => {
     console.log('Exit.')
   });
 });
+
+function checkIp(clientIp, callback) {
+	Excluded.findOne({ip: clientIp}, (err,obj) => { 
+	  if (err) throw err;
+	  if (obj){
+	  	callback(false);
+	  } else {
+	  	callback(true);
+	  }
+	});
+}
 
 http.listen(8081, '0.0.0.0', () => {
   console.log("0.0.0.0:8081 dinleniyor...");
