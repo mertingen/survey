@@ -1,3 +1,4 @@
+//gerekli modüller dahil ediliyor.
 const express = require('express');
 const path = require('path');
 const app = new express();
@@ -5,31 +6,45 @@ const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const mongoose = require('mongoose');
 
+//css, js gibi static dosyalar public dizini altında, onlar set ediliyor.
 app.use(express.static(path.join(__dirname, '/public')));
 
+//mongoose bluebird promise deprecated olduğu için ES6 promise kullanmasını söylüyorum.
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://user:user@ds047581.mlab.com:47581/survey');
-var db = mongoose.connection;
-var Total = require('./schemas/total.js');
-var Excluded = require('./schemas/excluded.js');
 
+//mongodb endpoint bağlantı sağlanıyor.
+mongoose.connect('mongodb://user:user@ds047581.mlab.com:47581/survey');
+//mongodb bağlantısı nesnesi alınıyor.
+var db = mongoose.connection;
+
+//mongodb bağlantısı gerçekleşirse ekrana yazdırılıyor.
 db.once('open', () => {
 	console.log('Db connected!');
 });
 
+//şemalar set ediliyor.
+var Total = require('./schemas/total.js');
+var Excluded = require('./schemas/excluded.js');
 
+//eğer / get isteği atılırsa, index.html yükletiliyor.
 app.get('/', (req, res) => {
 	res.sendFile(__dirname + '/index.html');
 });
 
+//kullanılan değişkenlere default değerler set ediliyor.
 var yesCounter = 0;
 var noCounter = 0;
 var total = 0;
 var clientIp = '';
+
+//socket.io connection event'i gerçekleşirse yapılacaklar.
 io.on('connection', (socket) => {
 
+	//bağlanılar kullanıcının ip addresi alınıyor.
 	clientIp = socket.request.connection.remoteAddress;
 
+	//eğer bu ip adresi mongodb'de kayıtlı ise oy kullanamıyor.
+	//bunun için arayüze kullanabilir/kullanamaz şeklinde değer gönderiliyor.
 	checkIp(clientIp, (isValidIp) => {
 		if (!isValidIp){
 			socket.emit('isVoter', false);
@@ -38,6 +53,7 @@ io.on('connection', (socket) => {
 		}
 	});
 
+	//mongodb şu ana kadar kullanılmış oylar arayüze gönderiliyor.
 	Total.findById('58125fb6ba8bd09f49a049ce', (err, doc) => {
 		yesCounter = doc.yes;
 		noCounter = doc.no;
@@ -47,34 +63,35 @@ io.on('connection', (socket) => {
 		io.sockets.emit('validNo', {noCounter:noCounter, total:total});
 	});
 
+	//eğer evet oyu kullanılırsa yapılacaklar
 	socket.on('dataYes', (data) => {
 
+		//eğer kullanıcının ip adresi mongodb kayıtlı ise oy kullanamıyor
 		checkIp(clientIp, (isValidIp) => {
 			if (!isValidIp){
 				console.log('KULLANAMAZSIN!');
 			}else if (data) {
 				++yesCounter;
 				++total;
-
-				Total.findOneAndUpdate({_id: '58125fb6ba8bd09f49a049ce'}, {$set:{yes:yesCounter}}, {new: true}, (err, doc) => {
-					if(err){
-						throw err;
-					}
-
-					var ip = new Excluded({ ip: clientIp });
-					ip.save( (err) => {
-						if (err) throw err;
-					});
-
-					io.sockets.emit('validYes', {yesCounter:yesCounter, total:total});
-					socket.emit('isVoter', false);
+				//oy kullandıktan sonra kullanıcının oyu gerekli kolon bulunup update ediliyor yani 1 artıyor.
+				Total.findOneAndUpdate({_id: '58125fb6ba8bd09f49a049ce'}, {$set:{yes:yesCounter}}, {new: true}, function(err, doc){
+					//kullanıcının ip'si kayıt ediliyor.
+					saveIp(clientIp, (isSaved) => {
+						if (isSaved) {
+							io.sockets.emit('validYes', {yesCounter:yesCounter, total:total});
+							socket.emit('isVoter', false);
+						}
+					})
 
 				});
 			}
 		});
 	});
 
+	//hayır oyu kullanılırsa yapılacaklar
 	socket.on('dataNo', (data) => {
+
+		//eğer kullanıcının ip adresi mongodb kayıtlı ise oy kullanamıyor
 		checkIp(clientIp, (isValidIp) => {
 			if (!isValidIp){
 				console.log('KULLANAMAZSIN!');
@@ -82,26 +99,27 @@ io.on('connection', (socket) => {
 				++noCounter;
 				++total;
 
+				//oy kullandıktan sonra kullanıcının oyu gerekli kolon bulunup update ediliyor yani 1 artıyor.
 				Total.findOneAndUpdate({_id: '58125fb6ba8bd09f49a049ce'}, {$set:{no:noCounter}}, {new: true}, function(err, doc){
-					if(err){
-						throw err;
-					}
-					var ip = new Excluded({ ip: clientIp });
-					ip.save( (err) => {
-						if (err) throw err;
-					});
-					io.sockets.emit('validNo', {noCounter:noCounter, total:total});
-					socket.emit('isVoter', false);
+					//kullanıcının ip'si kayıt ediliyor.
+					saveIp(clientIp, (isSaved) => {
+						if (isSaved){
+							io.sockets.emit('validNo', {noCounter:noCounter, total:total});
+							socket.emit('isVoter', false);
+						}
+					})
 				});
 			}
 		});
 	});
 
+	//kullanıcı bağlantıyı kopardığında yapılacaklar.
 	socket.on('disconnect', () => {
 		console.log('Exit.')
 	});
 });
 
+//kullanıcının ipsini kontrol eden fonksiyon
 function checkIp(clientIp, callback) {
 	Excluded.findOne({ip: clientIp}, (err,obj) => { 
 		if (err) throw err;
@@ -113,6 +131,16 @@ function checkIp(clientIp, callback) {
 	});
 }
 
+//kullanıcının ipsini kayıt eden fonksiyon
+function saveIp(clientIp, callback) {
+	var ip = new Excluded({ ip: clientIp });
+	ip.save( (err, isSaved) => {
+		if (err) throw err;
+		callback(isSaved._id);
+	});
+}
+
+//basit bir web server çalıştırıyor, 8081 portundan her yerden erişilebiliyor.
 http.listen(8081, '0.0.0.0', () => {
 	console.log("0.0.0.0:8081 dinleniyor...");
 });

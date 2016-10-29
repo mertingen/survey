@@ -35,12 +35,15 @@
   <!-- Chart code -->
   <script>
 
+    //defaultta oy kullanma butonları gizleniyor.
     $('#yes').hide();
     $('#no').hide();
     $(document).ready( () => {
 
+      //socket nesnesi alınıyor.
       var socket = io();
       var data = {};
+      //chart konfigürasyonu burda
       var chart = AmCharts.makeChart( "chartdiv", {
         "type": "pie",
         "theme": "light",
@@ -66,26 +69,32 @@
         }
       } );
 
+      //evet butonuna tıklanınca dataYes eventine true gönderiliyor.
       $('#yes').click( () => {
         socket.emit('dataYes', true);
       });
 
+      //hayır butonuna tıklanınca dataNo eventine true gönderiliyor.
       $('#no').click( () => {
         socket.emit('dataNo', true);
       });
 
+      //evet oyu kayıt edildikten sonra yapılacaklar.
       socket.on('validYes', (data) => {
         chart.dataProvider[1].value = data.yesCounter;
         $('#total').text('Toplam oy: ' + data.total);
         chart.validateData();
       });
 
+      //hayır oyu kayıt edildikten sonra yapılacaklar.
       socket.on('validNo', (data) => {
         chart.dataProvider[0].value = data.noCounter;
         $('#total').text('Toplam oy: ' + data.total);
         chart.validateData();
       });
 
+      //kullanıcı oyunu ve ip'sini kayıt ettiksen sonra sonra oy kullanma butonları siliniyor.
+      //eğer kayıtlı değilse oy kullanma butonları gösteriliyor.
       socket.on('isVoter', (isVoter) => {
         if (!isVoter){
           $('#yes').remove();
