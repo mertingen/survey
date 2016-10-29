@@ -5,7 +5,7 @@ const app = new express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const mongoose = require('mongoose');
-
+const config = require('./config.js');
 //css, js gibi static dosyalar public dizini altında, onlar set ediliyor.
 app.use(express.static(path.join(__dirname, '/public')));
 
@@ -13,7 +13,7 @@ app.use(express.static(path.join(__dirname, '/public')));
 mongoose.Promise = global.Promise;
 
 //mongodb endpoint bağlantı sağlanıyor.
-mongoose.connect('mongodb://user:user@ds047581.mlab.com:47581/survey');
+mongoose.connect(config.dbUrl);
 //mongodb bağlantısı nesnesi alınıyor.
 var db = mongoose.connection;
 
