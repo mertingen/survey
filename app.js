@@ -6,6 +6,8 @@ const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const mongoose = require('mongoose');
 const config = require('./config.js');
+const PORT = process.env.PORT || 80;
+
 //css, js gibi static dosyalar public dizini altında, onlar set ediliyor.
 app.use(express.static(path.join(__dirname, '/public')));
 
@@ -151,6 +153,6 @@ function saveIp(clientIp, callback) {
 }
 
 //basit bir web server çalıştırıyor, 8081 portundan her yerden erişilebiliyor.
-http.listen(80, '0.0.0.0', () => {
+http.listen(PORT, '0.0.0.0', () => {
 	console.log("0.0.0.0:80 dinleniyor...");
 });
