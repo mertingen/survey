@@ -54,6 +54,7 @@ io.on('connection', (socket) => {
 
 
 	//mongodb şu ana kadar kullanılmış oylar arayüze gönderiliyor.
+	//boş json vererek gelen ilk kaydı alıyor
 	Total.findOne({}, (err, doc) => {
 		if (doc.yes && doc.no){
 			yesCounter = doc.yes;
@@ -76,6 +77,7 @@ io.on('connection', (socket) => {
 				++yesCounter;
 				++total;
 				//oy kullandıktan sonra kullanıcının oyu gerekli kolon bulunup update ediliyor yani 1 artıyor.
+				//boş json vererek gelen ilk kaydı güncelliyor
 				Total.findOneAndUpdate({}, {$set:{yes:yesCounter}}, {new: true}, function(err, doc){
 					//kullanıcının ip'si kayıt ediliyor.
 					saveIp(clientIp, (isSaved) => {
@@ -102,6 +104,7 @@ io.on('connection', (socket) => {
 				++total;
 
 				//oy kullandıktan sonra kullanıcının oyu gerekli kolon bulunup update ediliyor yani 1 artıyor.
+				//boş json vererek gelen ilk kaydı güncelliyor
 				Total.findOneAndUpdate({}, {$set:{no:noCounter}}, {new: true}, function(err, doc){
 					//kullanıcının ip'si kayıt ediliyor.
 					saveIp(clientIp, (isSaved) => {
