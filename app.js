@@ -52,8 +52,9 @@ io.on('connection', (socket) => {
 		}
 	});
 
+
 	//mongodb şu ana kadar kullanılmış oylar arayüze gönderiliyor.
-	Total.findById('58125fb6ba8bd09f49a049ce', (err, doc) => {
+	Total.findOne({}, (err, doc) => {
 		if (doc.yes && doc.no){
 			yesCounter = doc.yes;
 			noCounter = doc.no;
@@ -75,7 +76,7 @@ io.on('connection', (socket) => {
 				++yesCounter;
 				++total;
 				//oy kullandıktan sonra kullanıcının oyu gerekli kolon bulunup update ediliyor yani 1 artıyor.
-				Total.findOneAndUpdate({_id: '58125fb6ba8bd09f49a049ce'}, {$set:{yes:yesCounter}}, {new: true}, function(err, doc){
+				Total.findOneAndUpdate({}, {$set:{yes:yesCounter}}, {new: true}, function(err, doc){
 					//kullanıcının ip'si kayıt ediliyor.
 					saveIp(clientIp, (isSaved) => {
 						if (isSaved) {
@@ -101,7 +102,7 @@ io.on('connection', (socket) => {
 				++total;
 
 				//oy kullandıktan sonra kullanıcının oyu gerekli kolon bulunup update ediliyor yani 1 artıyor.
-				Total.findOneAndUpdate({_id: '58125fb6ba8bd09f49a049ce'}, {$set:{no:noCounter}}, {new: true}, function(err, doc){
+				Total.findOneAndUpdate({}, {$set:{no:noCounter}}, {new: true}, function(err, doc){
 					//kullanıcının ip'si kayıt ediliyor.
 					saveIp(clientIp, (isSaved) => {
 						if (isSaved){
