@@ -60,6 +60,11 @@ io.on('connection', (socket) => {
 			yesCounter = doc.yes;
 			noCounter = doc.no;
 			total = doc.yes + doc.no;
+		}else{
+			var total = new Total({ yes: yesCounter, no: noCounter });
+			total.save( (err, isSaved) => {
+				if (err) throw err;
+			});
 		}
 
 		io.sockets.emit('validYes', {yesCounter:yesCounter, total:total});
