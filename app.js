@@ -146,6 +146,6 @@ function saveIp(clientIp, callback) {
 }
 
 //basit bir web server çalıştırıyor, 8081 portundan her yerden erişilebiliyor.
-http.listen(8081, '0.0.0.0', () => {
-	console.log("0.0.0.0:8081 dinleniyor...");
+http.listen(80, '0.0.0.0', () => {
+	console.log("0.0.0.0:80 dinleniyor...");
 });
