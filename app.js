@@ -32,9 +32,9 @@ app.get('/', (req, res) => {
 });
 
 //kullanılan değişkenlere default değerler set ediliyor.
-var yesCounter = 0;
-var noCounter = 0;
-var total = 0;
+var yesCounter = 1;
+var noCounter = 1;
+var total = 2;
 var clientIp = '';
 
 //socket.io connection event'i gerçekleşirse yapılacaklar.
@@ -56,7 +56,7 @@ io.on('connection', (socket) => {
 	//mongodb şu ana kadar kullanılmış oylar arayüze gönderiliyor.
 	//boş json vererek gelen ilk kaydı alıyor
 	Total.findOne({}, (err, doc) => {
-		if (doc.yes && doc.no){
+		if (doc){
 			yesCounter = doc.yes;
 			noCounter = doc.no;
 			total = doc.yes + doc.no;
