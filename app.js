@@ -54,9 +54,11 @@ io.on('connection', (socket) => {
 
 	//mongodb şu ana kadar kullanılmış oylar arayüze gönderiliyor.
 	Total.findById('58125fb6ba8bd09f49a049ce', (err, doc) => {
-		yesCounter = doc.yes;
-		noCounter = doc.no;
-		total = doc.yes + doc.no;
+		if (doc.yes && doc.no){
+			yesCounter = doc.yes;
+			noCounter = doc.no;
+			total = doc.yes + doc.no;
+		}
 
 		io.sockets.emit('validYes', {yesCounter:yesCounter, total:total});
 		io.sockets.emit('validNo', {noCounter:noCounter, total:total});
