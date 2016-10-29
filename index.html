@@ -70,7 +70,7 @@
         }
       } );
 
-      evet butonuna tıklanınca dataYes eventine true gönderiliyor.
+      //evet butonuna tıklanınca dataYes eventine true gönderiliyor.
       $('#yes').click( () => {
         socket.emit('dataYes', true);
         $.cookie('voter', 'excluded');
