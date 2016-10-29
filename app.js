@@ -39,7 +39,6 @@ var clientIp = '';
 
 //socket.io connection event'i gerçekleşirse yapılacaklar.
 io.on('connection', (socket) => {
-
 	//bağlanılar kullanıcının ip addresi alınıyor.
 	clientIp = socket.request.connection.remoteAddress;
 

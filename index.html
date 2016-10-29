@@ -15,16 +15,17 @@
   <center>
     <h5 id="question">Bugün başkanlık sistemi referandumu olsa ne derdiniz?</h5>
   </center>
-  <a href="https://twitter.com/share" id="tweet-share" class="twitter-share-button" data-text="Bugün başkanlık sistemi referandumu olsa evet mi derdin, hayır mı?" data-show-count="false">Tweet</a><script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
   <center id="chartCenter">
     <div id="chartdiv"></div>
     <h5 id="total"></h5>
     <a id="yes" class="waves-effect waves-light btn">Evet</a>
     <a id="no" class="waves-effect waves-light btn red">Hayır</a>
     <div id="thanks"></div>
+    <a href="https://twitter.com/share" id="tweet-share" class="twitter-share-button" data-text="Bugün başkanlık sistemi referandumu olsa evet mi derdin, hayır mı?" data-show-count="false">Tweet</a><script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
   </center>
   <!--Import jQuery before materialize.js-->
   <script type="text/javascript" src="js/jquery-2.1.1.min.js"></script>
+  <script type="text/javascript" src="js/jquery.cookie.js"></script>
   <script type="text/javascript" src="js/materialize.min.js"></script>
   <script type="text/javascript" src="/socket.io/socket.io.js"></script>
 
@@ -69,24 +70,26 @@
         }
       } );
 
-      //evet butonuna tıklanınca dataYes eventine true gönderiliyor.
+      evet butonuna tıklanınca dataYes eventine true gönderiliyor.
       $('#yes').click( () => {
         socket.emit('dataYes', true);
+        $.cookie('voter', 'excluded');
       });
 
       //hayır butonuna tıklanınca dataNo eventine true gönderiliyor.
       $('#no').click( () => {
         socket.emit('dataNo', true);
+        $.cookie('voter', 'excluded');
       });
 
-      //evet oyu kayıt edildikten sonra yapılacaklar.
+      //güncelenen evet verisi set ediliyor.
       socket.on('validYes', (data) => {
         chart.dataProvider[1].value = data.yesCounter;
         $('#total').text('Toplam oy: ' + data.total);
         chart.validateData();
       });
 
-      //hayır oyu kayıt edildikten sonra yapılacaklar.
+      //güncelenen hayır verisi set ediliyor.
       socket.on('validNo', (data) => {
         chart.dataProvider[0].value = data.noCounter;
         $('#total').text('Toplam oy: ' + data.total);
@@ -96,7 +99,7 @@
       //kullanıcı oyunu ve ip'sini kayıt ettiksen sonra sonra oy kullanma butonları siliniyor.
       //eğer kayıtlı değilse oy kullanma butonları gösteriliyor.
       socket.on('isVoter', (isVoter) => {
-        if (!isVoter){
+        if (!isVoter || $.cookie('voter') == 'excluded'){
           $('#yes').remove();
           $('#no').remove();
           $('#thanks').text('Oy kullandığınız için teşekkürler.');
