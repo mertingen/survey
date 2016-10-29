@@ -61,8 +61,8 @@ io.on('connection', (socket) => {
 			noCounter = doc.no;
 			total = doc.yes + doc.no;
 		}else{
-			var total = new Total({ yes: yesCounter, no: noCounter });
-			total.save( (err, isSaved) => {
+			var totalSchema = new Total({ yes: yesCounter, no: noCounter });
+			totalSchema.save( (err, isSaved) => {
 				if (err) throw err;
 			});
 		}
