@@ -73,13 +73,13 @@
       //evet butonuna tıklanınca dataYes eventine true gönderiliyor.
       $('#yes').click( () => {
         socket.emit('dataYes', true);
-        $.cookie('voter', 'excluded');
+        $.cookie('voter', 'excluded', {expires : 30});
       });
 
       //hayır butonuna tıklanınca dataNo eventine true gönderiliyor.
       $('#no').click( () => {
         socket.emit('dataNo', true);
-        $.cookie('voter', 'excluded');
+        $.cookie('voter', 'excluded', {expires : 30});
       });
 
       //güncelenen evet verisi set ediliyor.
