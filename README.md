@@ -14,3 +14,6 @@ This use the real-time survey system.
     $ node app.js
 
 # real-time survey
+
+![Alt text](/public/survey.jpg?raw=true "Real-Time Survey")
+
