@@ -15,5 +15,5 @@ This use the real-time survey system.
 
 # real-time survey
 
-![Alt text](/public/survey.jpg?raw=true "Real-Time Survey")
+![Alt text](/https://github.com/mertingen/survey/public/survey.jpg?raw=true "Real-Time Survey")
 
